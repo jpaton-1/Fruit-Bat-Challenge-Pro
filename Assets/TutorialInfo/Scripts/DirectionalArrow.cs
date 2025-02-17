@@ -5,6 +5,9 @@ public class DirectionalArrow : MonoBehaviour
     public float edgeBuffer = 100f; // Distance from screen edge
     public float arrowScale = 50f;  // Size of the arrow
     public Color arrowColor = Color.yellow;
+    
+    [Tooltip("Base rotation offset to align arrow properly")]
+    public float baseRotationOffset = 90f; // Adjust this if arrow points up/down by default
 
     private Camera mainCamera;
     private RectTransform arrowRectTransform;
@@ -33,34 +36,33 @@ public class DirectionalArrow : MonoBehaviour
         bool isBehind = screenPoint.z < 0;
         screenPoint.z = 0;
 
-        // Check if banana is off screen
-        bool isOffScreen = screenPoint.x <= 0 || screenPoint.x >= Screen.width ||
-                          screenPoint.y <= 0 || screenPoint.y >= Screen.height || isBehind;
-
-        if (isOffScreen)
+        // Check if banana is off screen horizontally
+        bool isOffScreenX = screenPoint.x <= 0 || screenPoint.x >= Screen.width;
+        
+        if (isOffScreenX || isBehind)
         {
             canvasGroup.alpha = 1f;
 
-            // If behind the camera, flip the point
-            if (isBehind)
+            // Calculate arrow position
+            float xPosition;
+            float rotation;
+            
+            // If behind camera or far left, show arrow on left
+            if (isBehind || screenPoint.x <= 0)
             {
-                screenPoint.x = Screen.width - screenPoint.x;
-                screenPoint.y = Screen.height - screenPoint.y;
+                xPosition = edgeBuffer;
+                rotation = baseRotationOffset - 90f; // Point right
+            }
+            // If far right, show arrow on right
+            else
+            {
+                xPosition = Screen.width - edgeBuffer;
+                rotation = baseRotationOffset + 90f; // Point left
             }
 
-            // Calculate center of screen
-            Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
-            
-            // Get direction from center to banana
-            Vector2 direction = (screenPoint - new Vector3(screenCenter.x, screenCenter.y, 0f)).normalized;
-
-            // Calculate position on screen edge
-            float angle = Mathf.Atan2(direction.y, direction.x);
-            Vector2 arrowPosition = screenCenter + direction * (Mathf.Min(screenCenter.x, screenCenter.y) - edgeBuffer);
-
             // Set position and rotation
-            arrowRectTransform.position = arrowPosition;
-            arrowRectTransform.rotation = Quaternion.Euler(0, 0, Mathf.Rad2Deg * angle);
+            arrowRectTransform.position = new Vector3(xPosition, Screen.height / 2f, 0f);
+            arrowRectTransform.rotation = Quaternion.Euler(0, 0, rotation);
         }
         else
         {

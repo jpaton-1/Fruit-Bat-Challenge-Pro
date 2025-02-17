@@ -45,6 +45,6 @@ public class FruitSpawner : MonoBehaviour
 
     int GetCurrentFruitCount()
     {
-        return GameObject.FindObjectsOfType<FruitEnemy>().Length;
+        return Object.FindObjectsByType<FruitEnemy>(FindObjectsSortMode.None).Length;
     }
 }

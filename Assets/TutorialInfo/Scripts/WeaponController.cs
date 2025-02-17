@@ -8,10 +8,16 @@ public class WeaponController : MonoBehaviour
     public float swingCooldown = 0.5f;
     public float swingSpeed = 400f;
     
+    [Header("Sound Effects")]
+    public AudioClip swingSound;
+    [Range(0f, 1f)]
+    public float swingSoundVolume = 0.5f;
+    
     private GameObject bat;
     private bool isSwinging = false;
     private bool canSwing = true;
     private float nextSwingTime;
+    private AudioSource audioSource;
 
     void Start()
     {
@@ -19,6 +25,11 @@ public class WeaponController : MonoBehaviour
         bat = Instantiate(batPrefab, transform);
         bat.transform.localPosition = new Vector3(1f, -1f, 2f);
         bat.transform.localRotation = Quaternion.Euler(45f, 0, 0);
+
+        // Set up audio
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0f; // 2D sound
     }
 
     void Update()
@@ -38,9 +49,18 @@ public class WeaponController : MonoBehaviour
         // Starting rotation
         Quaternion startRotation = bat.transform.localRotation;
         
+        // Play swing sound at start of swing
+        if (swingSound != null)
+        {
+            audioSource.clip = swingSound;
+            audioSource.volume = swingSoundVolume;
+            audioSource.Play();
+        }
+        
         // Swing forward
         float elapsedTime = 0f;
         float swingDuration = 0.2f;
+        bool hitSomething = false;
 
         while (elapsedTime < swingDuration)
         {
@@ -53,7 +73,7 @@ public class WeaponController : MonoBehaviour
             // Check for hits during the swing
             if (swingProgress > 0.2f && swingProgress < 0.8f)
             {
-                CheckForHits();
+                hitSomething |= CheckForHits();
             }
 
             yield return null;
@@ -76,21 +96,25 @@ public class WeaponController : MonoBehaviour
         canSwing = true;
     }
 
-    void CheckForHits()
+    bool CheckForHits()
     {
         Vector3 batPosition = bat.transform.position;
         Vector3 batForward = bat.transform.forward;
         
         RaycastHit[] hits = Physics.SphereCastAll(batPosition, hitRange, batForward, hitRange);
+        bool hitSomething = false;
         
         foreach (RaycastHit hit in hits)
         {
             FruitEnemy fruit = hit.collider.GetComponent<FruitEnemy>();
             if (fruit != null)
             {
+                hitSomething = true;
                 Vector3 hitDirection = (hit.point - batPosition).normalized;
                 fruit.TakeDamage(25f, hitDirection);
             }
         }
+
+        return hitSomething;
     }
 }

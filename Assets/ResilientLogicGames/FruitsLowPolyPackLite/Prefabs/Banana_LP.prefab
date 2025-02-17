@@ -168,3 +168,12 @@ MonoBehaviour:
   knockbackForce: 20
   spinForce: 400
   scale: 4
+  stopDistance: 8
+  hitSound: {fileID: 8300000, guid: bd5ec65fb6c164c819f6df6d55b7af57, type: 3}
+  hitSoundVolume: 0.7
+  hitSoundPitchVariation: 0.1
+  hoverHeight: 2
+  bobSpeed: 2
+  bobAmount: 0.5
+  minHeight: 2
+  bounceForce: 500
